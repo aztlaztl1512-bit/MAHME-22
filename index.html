@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حقيبة القدرات (22) - أ/ عبدالعزيز الفيفي</title>
+    <style>
+        :root { 
+            --primary: #1a237e;   /* أزرق ليلي */
+            --secondary: #455a64; /* رمادي فضي */
+            --accent: #ffab00;    /* ذهبي */
+            --bg: #f4f7f6; 
+            --white: #ffffff; 
+            --correct: #2e7d32;
+            --wrong: #c62828;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; line-height: 1.7; color: #333; }
+        .quiz-card { background: var(--white); width: 100%; max-width: 950px; border-radius: 25px; box-shadow: 0 15px 45px rgba(0,0,0,0.1); border-top: 15px solid var(--primary); padding: 30px; position: relative; }
+        .header { text-align: center; border-bottom: 2px solid #eee; margin-bottom: 25px; padding-bottom: 15px; }
+        .teacher-sig { color: var(--primary); font-weight: bold; font-size: 1.6rem; margin: 0; }
+        
+        .timer-container { position: sticky; top: 10px; background: var(--wrong); color: white; padding: 10px 25px; border-radius: 50px; font-weight: bold; font-size: 1.1rem; display: inline-block; margin-bottom: 20px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .option { padding: 18px; border: 2px solid #f0f0f0; border-radius: 15px; cursor: pointer; transition: 0.3s; font-weight: bold; background: #fafafa; font-size: 1.1rem; text-align: center; }
+        .option:hover { border-color: var(--primary); background: #f0f4ff; transform: translateY(-2px); }
+        
+        .correct-opt { background: var(--correct) !important; color: white; border-color: var(--correct) !important; }
+        .wrong-opt { background: var(--wrong) !important; color: white; border-color: var(--wrong) !important; }
+        
+        .feedback-box { margin-top: 20px; padding: 20px; border-radius: 15px; background: #fffde7; border-right: 8px solid var(--accent); display: none; font-size: 1.05rem; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+        .btn { background: var(--secondary); color: white; padding: 16px 45px; border: none; border-radius: 12px; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: var(--primary); transform: scale(1.02); }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 25px; background: white; }
+        .result-table th { background: var(--primary); color: white; padding: 12px; }
+        .result-table td { border: 1px solid #ddd; padding: 12px; text-align: center; font-size: 0.9rem; }
+        
+        .hidden { display: none; }
+        .locked { text-align: center; color: red; margin-top: 100px; padding: 50px; border: 5px solid red; background: white; border-radius: 20px; }
+    </style>
+</head>
+<body id="main-body">
+
+<div class="quiz-card" id="quiz-container">
+    <div class="header">
+        <h3 id="author-name">✨ أ / عبد العزيز الفيفي - ثانوية الأمير عبدالمجيد 🎓</h3>
+        <h2 id="quiz-title">اختبار التناظر اللفظي - النموذج (22) المطور</h2>
+    </div>
+
+    <div id="start-page" style="text-align: center;">
+        <p style="font-size: 1.2rem; margin-bottom: 20px;">تحدي السرعة والإتقان: 45 ثانية لكل سؤال.<br>تغذية راجعة موسعة وتقرير مراجعة ختامي شامل.</p>
+        <input type="text" id="studentNameInput" placeholder="أدخل اسمك الثلاثي" style="width: 75%; padding: 15px; border-radius: 10px; border: 2px solid #ccc; text-align: center; font-size: 1.1rem; margin-bottom: 20px;">
+        <br><button class="btn" onclick="startQuizAction()">ابدأ الاختبار 🚀</button>
+    </div>
+
+    <div id="quiz-page" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div id="progress-text" style="font-weight: bold; color: var(--primary);"></div>
+            <div class="timer-container">⏳ المتبقي: <span id="timer-val">45</span> ثانية</div>
+        </div>
+        <div id="question-display" style="font-size: 2rem; text-align: center; margin: 25px 0; font-weight: 800; color: var(--primary); background: #f9f9f9; padding: 25px; border-radius: 20px; border: 1px solid #eee;"></div>
+        <div id="options-container" class="options-grid"></div>
+        <div id="feedback-display" class="feedback-box"></div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="next-btn" class="btn hidden" onclick="loadNextQuestion()">السؤال التالي ⮕</button>
+        </div>
+    </div>
+
+    <div id="result-page" class="hidden">
+        <div style="text-align: center; padding: 30px; background: #e8eaf6; border-radius: 20px; border: 3px solid var(--primary); margin-bottom: 30px;">
+            <h2 id="score-display" style="color: var(--primary); margin:0; font-size: 2.5rem;"></h2>
+            <p id="student-greeting" style="font-size: 1.2rem; margin-top:10px;"></p>
+        </div>
+        <h3 style="color: var(--secondary); border-right: 5px solid var(--accent); padding-right: 15px;">📊 تقرير المراجعة والتحليل المنطقي العميق:</h3>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>السؤال</th>
+                    <th>إجابتك</th>
+                    <th>الصحيحة</th>
+                    <th>التفسير والتحليل المنطقي</th>
+                </tr>
+            </thead>
+            <tbody id="summary-body"></tbody>
+        </table>
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="font-weight: bold; color: var(--primary);">✨ أ / عبد العزيز الفيفي - ثانوية الأمير عبدالمجيد 🎓</p>
+            <button class="btn" onclick="location.reload()">إعادة الاختبار</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // حماية الحقوق الفكرية
+    (function protect() {
+        const teacher = "عبد العزيز الفيفي";
+        setInterval(() => {
+            const auth = document.getElementById('author-name');
+            if (!auth || !auth.innerText.includes(teacher)) {
+                document.getElementById('main-body').innerHTML = '<div class="locked"><h1>⚠️ خرق حماية الملكية</h1><p>هذا العمل ملك للأستاذ عبدالعزيز الفيفي. لا يسمح بتشغيل الاختبار عند تعديل الحقوق.</p></div>';
+            }
+        }, 2000);
+    })();
+
+    const questionsPool = [
+        { q: "عظم : وهن", c: "مرض : جسم", a: ["مرض : جسم", "نار : جمر", "قلب : بصيرة", "علو : درك"], r: "<b>التحليل المنطقي:</b> العلاقة: الوهن (الضعف) يصيب العظم، والمرض يصيب الجسم (علاقة إصابة واعتلال)." },
+        { q: "كسل : تخمة", c: "اجتهاد : نجاح", a: ["اجتهاد : نجاح", "عمل : قوة", "حركة : حياة", "فكرة : ذكاء"], r: "<b>التحليل المنطقي:</b> العلاقة: التخمة تسبب الكسل، والاجتهاد يسبب النجاح (سبب ونتيجة)." },
+        { q: "عقار : منزل", c: "بصل : ثوم", a: ["بصل : ثوم", "أخلاق : شهامة", "مزرعة : زريبة", "جنة : نار"], r: "<b>التحليل المنطقي:</b> العلاقة: المنزل نوع من العقارات، والبصل والثوم كلاهما من الخضروات (فئة واحدة)." },
+        { q: "ذهب : راح", c: "صمت : سكت", a: ["صمت : سكت", "ليث : أسد", "عفو : قصاص", "عدل : جور"], r: "<b>التحليل المنطقي:</b> العلاقة: ترادف؛ ذهب تعني راح، وصمت تعني سكت." },
+        { q: "انشراح : انقباض", c: "سكينة : قلق", a: ["سكينة : قلق", "شرار : نار", "ابتسامة : أسنان", "خير : صلاح"], r: "<b>التحليل المنطقي:</b> العلاقة: تضاد؛ الانشراح عكس الانقباض، والسكينة عكس القلق." },
+        { q: "ثقة : غرور", c: "طيبة : ضعف", a: ["طيبة : ضعف", "جامد : سائل", "استغفار : انشراح", "سائل : جامد"], r: "<b>التحليل المنطقي:</b> العلاقة: زيادة الشيء عن حده؛ الثقة الزائدة تؤدي للغرور، والطيبة الزائدة قد تفسر كضعف." },
+        { q: "قاضي : قضية", c: "طبيب : مرض", a: ["طبيب : مرض", "مدرس : كتب", "نجار : علاج", "فلاح : بناء"], r: "<b>التحليل المنطقي:</b> العلاقة: وظيفة؛ القاضي يحل القضية والطبيب يعالج المرض." },
+        { q: "جندي : ضابط", c: "مأموم : إمام", a: ["مأموم : إمام", "رئيس : وزير", "مدير : موظف", "معلم : طالب"], r: "<b>التحليل المنطقي:</b> العلاقة: رتبة وتدرج؛ الجندي يتبعه الضابط في الرتبة، والمأموم يتبع الإمام." },
+        { q: "شهر : بدر", c: "أسبوع : هلال", a: ["أسبوع : هلال", "سنة : حج", "موسم : برد", "رمضان : صوم"], r: "<b>التحليل المنطقي:</b> العلاقة: ارتباط زمني؛ البدر يظهر في الشهر، والهلال يظهر في الأسبوع (ارتباط بالمراحل)." },
+        { q: "عطر : مكان", c: "إشاعة : شر", a: ["إشاعة : شر", "شبكة : صيد", "ماء : حياة", "سمك : غابة"], r: "<b>التحليل المنطقي:</b> العلاقة: انتشار؛ الرائحة (العطر) تنتشر في المكان والإشاعة تنتشر وتسبب الشر." },
+        { q: "نجار : خشب", c: "غواص : لؤلؤ", a: ["غواص : لؤلؤ", "حداد : مصنع", "طالب : فصل", "موظف : مكتب"], r: "<b>التحليل المنطقي:</b> العلاقة: مهنة ومادة؛ النجار يتعامل مع الخشب والغواص يستخرج اللؤلؤ." },
+        { q: "طاقة : وقود", c: "لياقة : قوة", a: ["لياقة : قوة", "طيارة : تذكرة", "قطار : محطة", "الحكم : مبادرة"], r: "<b>التحليل المنطقي:</b> العلاقة: مصدر؛ الوقود مصدر الطاقة والقوة مصدر اللياقة." },
+        { q: "صياح : ديك", c: "رنين : جرس", a: ["رنين : جرس", "عويل : ذئب", "أسد : زئير", "فحيح : كلب"], r: "<b>التحليل المنطقي:</b> العلاقة: الكائن وصوته؛ صياح الديك ورنين الجرس." },
+        { q: "سكر : ملح", c: "ذهب : فضة", a: ["ذهب : فضة", "قمح : أرز", "شمام : بطيخ", "برتقال : بطيخ"], r: "<b>التحليل المنطقي:</b> العلاقة: فئة واحدة (معادن ثمينة وكلاهما بودرة طعام)." },
+        { q: "سكر : حليب", c: "ملح : ماء", a: ["ملح : ماء", "حر : نهر", "لعبة : طفل", "زيت : ماء"], r: "<b>التحليل المنطقي:</b> العلاقة: إذابة؛ السكر يذوب في الحليب والملح يذوب في الماء." },
+        { q: "أرض : دائرة", c: "سيارة : مستطيل", a: ["سيارة : مستطيل", "ناقة : مثلث", "فيل : معين", "طابعة : مجسم"], r: "<b>التحليل المنطقي:</b> العلاقة: شكل تقريبي؛ الأرض دائرية والسيارة مستطيلة." },
+        { q: "طالب : أستاذ", c: "بذرة : شجرة", a: ["بذرة : شجرة", "حبر : قلم", "أب : ابن", "دجاجة : صقر"], r: "<b>التحليل المنطقي:</b> العلاقة: تدرج ومرحلية؛ الطالب يتخرج ليصبح أستاذاً والبذرة تنمو لتصبح شجرة." },
+        { q: "أسد : نمر", c: "أرنب : ثعلب", a: ["أرنب : ثعلب", "شعور : قرش", "كلب : قطة", "حمامة : صقر"], r: "<b>التحليل المنطقي:</b> العلاقة: فئة واحدة (حيوانات)." },
+        { q: "دين : معاصي", c: "خراف : ذئب", a: ["خراف : ذئب", "قلب : موت", "حب : عاطفة", "ظلم : جور"], r: "<b>التحليل المنطقي:</b> العلاقة: تهديد؛ المعاصي تفسد الدين والذئب يفترس الخراف (الغنم)." },
+        { q: "تنقل : قطار", c: "شراء : دراهم", a: ["شراء : دراهم", "صلاة : وضوء", "مدرج : مشجع", "زكاة : مال"], r: "<b>التحليل المنطقي:</b> العلاقة: وسيلة؛ القطار وسيلة تنقل والدراهم وسيلة شراء." },
+        { q: "الغصن : الجذع", c: "اليد : المرفق", a: ["اليد : المرفق", "رقبة : قدم", "أرض : سماء", "كفر : إسلام"], r: "<b>التحليل المنطقي:</b> العلاقة: جزء من كل؛ الغصن من الجذع والاليد من المرفق." },
+        { q: "سفر : قصر", c: "مرض : فطر", a: ["مرض : فطر", "سهر : أرق", "عقد : عهد", "وجع : دواء"], r: "<b>التحليل المنطقي:</b> العلاقة: رخصة؛ السفر يبيح قصر الصلاة والمرض يبيح فطر الصيام." },
+        { q: "خماص : بطان", c: "راضية : ساخطة", a: ["راضية : ساخطة", "صفح : سماح", "قارب : زورق", "مسافة : طول"], r: "<b>التحليل المنطقي:</b> العلاقة: تضاد؛ خماص (جياع) وبطان (شبعى)، وراضية عكسها ساخطة." },
+        { q: "حليب : قشطة", c: "عسل : نحل", a: ["عسل : نحل", "بئر : ماء", "غزال : حرير", "دودة : مال"], r: "<b>التحليل المنطقي:</b> العلاقة: مصدر؛ القشطة من الحليب والعسل من النحل." },
+        { q: "قفل : غلق", c: "يعوم : يسبح", a: ["يعوم : يسبح", "يسامح : يقتص", "يستسلم : يقاوم", "يبتعد : يقترب"], r: "<b>التحليل المنطقي:</b> العلاقة: ترادف؛ القفل يؤدي للغلق واليعوم هو السباحة." },
+        { q: "عصابة : رأس", c: "حزام : خصر", a: ["حزام : خصر", "بنطال : ذراع", "ساعة : قدم", "قبعة : ساق"], r: "<b>التحليل المنطقي:</b> العلاقة: إحاطة؛ العصابة تحيط بالرأس والحزام يحيط بالخصر." },
+        { q: "أنعام : إبل", c: "سباع : ذئب", a: ["سباع : ذئب", "تيس : خروف", "ضأن : ماعز", "أسد : جرو"], r: "<b>التحليل المنطقي:</b> العلاقة: فئة وفرد منها؛ الإبل من الأنعام والذئب من السباع." },
+        { q: "سلسلة : حلقة", c: "سلم : درج", a: ["سلم : درج", "مستطيل : دائرة", "مسمار : حديد", "ذهب : فضة"], r: "<b>التحليل المنطقي:</b> العلاقة: الكل والجزء؛ السلسلة تتكون من حلقات والسلم يتكون من درجات." },
+        { q: "لسان : نطق", c: "لهجة : قبيلة", a: ["لهجة : قبيلة", "حبل : عقد", "كلام : فهم", "غلق : باب"], r: "<b>التحليل المنطقي:</b> العلاقة: أداة واستخدام أو انتماء؛ اللسان للنطق واللهجة للقبيلة." },
+        { q: "ليل : نهار", c: "أبيض : أسود", a: ["أبيض : أسود", "صيف : خريف", "خير : سلام", "شر : دمار"], r: "<b>التحليل المنطقي:</b> العلاقة: تضاد وتعاقب؛ الليل عكس النهار والأبيض عكس الأسود. ✨ أ / عبد العزيز الفيفي - ثانوية الأمير عبدالمجيد 🎓" }
+    ];
+
+    let currentIdx = 0, score = 0, timerInterval, timeLeft = 45, logs = [];
+
+    function startQuizAction() {
+        const name = document.getElementById('studentNameInput').value;
+        if (!name.trim()) return alert("يرجى كتابة الاسم الثلاثي");
+        document.getElementById('start-page').classList.add('hidden');
+        document.getElementById('quiz-page').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 45;
+        document.getElementById('timer-val').innerText = timeLeft;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer-val').innerText = timeLeft;
+            if (timeLeft <= 0) { clearInterval(timerInterval); handleSelection(null); }
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        if (currentIdx >= questionsPool.length) { endQuiz(); return; }
+        const q = questionsPool[currentIdx];
+        document.getElementById('progress-text').innerText = `سؤال ${currentIdx + 1} من ${questionsPool.length}`;
+        document.getElementById('question-display').innerText = q.q;
+        document.getElementById('feedback-display').style.display = 'none';
+        document.getElementById('next-btn').classList.add('hidden');
+        
+        const box = document.getElementById('options-container');
+        box.innerHTML = '';
+        [...q.a].sort(() => Math.random() - 0.5).forEach(opt => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            div.innerText = opt;
+            div.onclick = () => handleSelection(opt, div);
+            box.appendChild(div);
+        });
+        startTimer();
+    }
+
+    function handleSelection(sel, el) {
+        clearInterval(timerInterval);
+        const q = questionsPool[currentIdx];
+        const opts = document.querySelectorAll('.option');
+        opts.forEach(o => o.onclick = null);
+
+        let isCorrect = (sel === q.c);
+        if (isCorrect) {
+            if(el) el.classList.add('correct-opt');
+            score++;
+        } else {
+            if(el) el.classList.add('wrong-opt');
+            opts.forEach(o => { if(o.innerText === q.c) o.classList.add('correct-opt'); });
+        }
+
+        const feedback = document.getElementById('feedback-display');
+        feedback.style.display = 'block';
+        feedback.innerHTML = `<strong>💡 التحليل المنطقي:</strong> ${q.r}`;
+        document.getElementById('next-btn').classList.remove('hidden');
+        logs.push({ q: q.q, user: sel || "انتهى الوقت", correct: q.c, r: q.r });
+    }
+
+    function loadNextQuestion() {
+        currentIdx++;
+        loadQuestion();
+    }
+
+    function endQuiz() {
+        document.getElementById('quiz-page').classList.add('hidden');
+        document.getElementById('result-page').classList.remove('hidden');
+        document.getElementById('score-display').innerText = `نتيجتك النهائية: ${score} من ${questionsPool.length}`;
+        const tbody = document.getElementById('summary-body');
+        logs.forEach(log => {
+            tbody.innerHTML += `<tr><td>${log.q}</td><td style="color:${log.user === log.correct ? 'green':'red'}">${log.user}</td><td style="color:green; font-weight:bold">${log.correct}</td><td style="text-align:right">${log.r}</td></tr>`;
+        });
+    }
+</script>
+</body>
+</html>
